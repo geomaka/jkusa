@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JKUSA 2025</title>
     <link rel="stylesheet" href="index.css">
 </head>
+
 <body>
 
     <!-- Landing Page -->
@@ -14,10 +16,10 @@
             <source src="media/invideo-ai-1080 Energize Your Vote with JKUSA 2025! 2025-02-28 (1).mp4" type="video/mp4">
         </video>
         <div class="overlay"></div>
-        
+
         <nav class="navbar">
             <img src="media/yuEbkvie_400x400.jpg" alt="JKUSA Logo" class="logo-image">
-            <div class="hamburger">&#9776;</div> 
+            <div class="hamburger">&#9776;</div>
             <ul class="nav-links">
                 <li><a href="#home" class="nav-item">Home</a></li>
                 <li><a href="#about" class="nav-item">About Us</a></li>
@@ -25,10 +27,11 @@
                 <li><a href="#" class="nav-item apply-link">Apply</a></li>
             </ul>
         </nav>
-        
+
         <div class="content" id="home">
             <h1 class="title">Welcome to <span class="highlight">JKUSA 2025</span></h1>
-            <p class="subtitle">Your <span class="highlight">Voice</span>, Your <span class="highlight">Future</span></p>
+            <p class="subtitle">Your <span class="highlight">Voice</span>, Your <span class="highlight">Future</span>
+            </p>
             <a href="#" id="apply-now-btn" class="apply-now-btn">Apply Now</a>
         </div>
     </div>
@@ -36,8 +39,11 @@
     <!-- About Us Section -->
     <section id="about" class="about-container hidden">
         <h2>About JKUSA</h2>
-        <p>JKUSA (Jomo Kenyatta University Students Association) is the official student governance body at JKUAT, committed to representing student interests, advocating for their rights, and fostering leadership development.</p>
-        <p>We believe in empowering students through transparent elections, policy advocacy, and inclusive representation. Join us in shaping the future of student leadership!</p>
+        <p>JKUSA (Jomo Kenyatta University Students Association) is the official student governance body at JKUAT,
+            committed to representing student interests, advocating for their rights, and fostering leadership
+            development.</p>
+        <p>We believe in empowering students through transparent elections, policy advocacy, and inclusive
+            representation. Join us in shaping the future of student leadership!</p>
     </section>
 
     <!-- Candidates Section -->
@@ -95,14 +101,13 @@
     </div>
 
     <!-- Ad Popup Modal -->
-<div id="ad-modal" class="modal">
-    <div class="modal-content ad-content">
-        <span class="close close-ad">&times;</span>
-        <h2>📢 Special Announcement!</h2>
-        <p>Don't miss out on the upcoming <strong>Offers</strong>. Stay informed and get yours while stocks last!</p>
-        <img src="media\istockphoto-1350560575-612x612.jpg" alt="Ad Banner" class="ad-image">
+    <div id="ad-modal" class="modal">
+        <div class="modal-content ad-content">
+            <span class="close close-ad">&times;</span>
+            <video id="ad-video" src="media\Beige Minimal New Product Pinterest Pin.mp4" width="100%" height="100%"
+                controls autoplay muted></video>
+        </div>
     </div>
-</div>
 
 
     <!-- Footer -->
@@ -114,5 +119,9 @@
     <script src="candidate.js"></script>
     <script src="Menu.js"></script>
     <script src="ad.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+
 </body>
+
 </html>

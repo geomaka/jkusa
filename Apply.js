@@ -5,32 +5,47 @@ document.addEventListener("DOMContentLoaded", function () {
     const applyLink = document.querySelector(".apply-link");
     const closeBtn = document.querySelector(".close");
 
+    let db;
+
+    /** 🔹 Open IndexedDB Database */
+    const request = indexedDB.open("ElectionDB", 1);
+
+    request.onupgradeneeded = function (event) {
+        db = event.target.result;
+        if (!db.objectStoreNames.contains("candidates")) {
+            db.createObjectStore("candidates", { keyPath: "id", autoIncrement: true });
+        }
+    };
+
+    request.onsuccess = function (event) {
+        db = event.target.result;
+        console.log("IndexedDB opened successfully.");
+    };
+
+    request.onerror = function (event) {
+        console.error("Error opening IndexedDB:", event.target.error);
+    };
+
+    /** 🔹 Open Apply Modal */
     function openModal(event) {
         event.preventDefault();
-        console.log("Opening Apply Modal...");
-        applyModal.style.display = "flex";
+        if (applyModal) {
+            applyModal.style.display = "flex";
+        } else {
+            console.error("Apply Modal not found!");
+        }
     }
 
+    /** 🔹 Close Apply Modal */
     function closeModal() {
-        console.log("Closing Apply Modal...");
-        applyModal.style.display = "none";
+        if (applyModal) {
+            applyModal.style.display = "none";
+        }
     }
 
-    if (applyNowBtn) {
-        applyNowBtn.addEventListener("click", openModal);
-    } else {
-        console.error("Apply Now button not found!");
-    }
-
-    if (applyLink) {
-        applyLink.addEventListener("click", openModal);
-    } else {
-        console.error("Apply link in navbar not found!");
-    }
-
-    if (closeBtn) {
-        closeBtn.addEventListener("click", closeModal);
-    }
+    if (applyNowBtn) applyNowBtn.addEventListener("click", openModal);
+    if (applyLink) applyLink.addEventListener("click", openModal);
+    if (closeBtn) closeBtn.addEventListener("click", closeModal);
 
     window.addEventListener("click", function (event) {
         if (event.target === applyModal) {
@@ -38,11 +53,47 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    applyForm.addEventListener("submit", function (e) {
+    /** 🔹 Extract Text from PDF */
+    async function extractTextFromPDF(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async function () {
+                const pdfData = new Uint8Array(reader.result);
+                const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                let text = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join(" ") + "\n";
+                }
+                resolve(text.trim());
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    /** 🔹 Extract Text from DOCX */
+    async function extractTextFromDocx(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async function (event) {
+                const arrayBuffer = event.target.result;
+                mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                    .then(result => resolve(result.value.trim()))
+                    .catch(reject);
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    /** 🔹 Handle Form Submission */
+    applyForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const name = document.getElementById("name").value;
-        const position = document.getElementById("position").value
+        const position = document.getElementById("position").value;
         const manifestoInput = document.getElementById("manifesto").files[0];
         const video = document.getElementById("video").value;
         const posterInput = document.getElementById("poster").files[0];
@@ -52,36 +103,53 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        let manifestoText = "";
+        const fileType = manifestoInput.name.split(".").pop().toLowerCase();
+
+        try {
+            if (fileType === "pdf") {
+                manifestoText = await extractTextFromPDF(manifestoInput);
+            } else if (fileType === "docx") {
+                manifestoText = await extractTextFromDocx(manifestoInput);
+            } else {
+                alert("Only PDF and DOCX files are supported.");
+                return;
+            }
+        } catch (error) {
+            console.error("Error extracting manifesto text:", error);
+            alert("Failed to process manifesto document.");
+            return;
+        }
+
         const readerPoster = new FileReader();
-        const readerManifesto = new FileReader();
+        readerPoster.onload = function (event) {
+            const posterUrl = event.target.result;
 
-        readerManifesto.onload = function () {
-            const manifestoUrl = readerManifesto.result;
+            /** 🔹 Save Candidate to IndexedDB */
+            const transaction = db.transaction(["candidates"], "readwrite");
+            const store = transaction.objectStore("candidates");
 
-            readerPoster.onload = function () {
-                const posterUrl = readerPoster.result;
-
-                let candidates = JSON.parse(localStorage.getItem("candidates")) || [];
-
-                candidates.push({
-                    name,
-                    position,
-                    manifesto: manifestoUrl,
-                    video,
-                    poster: posterUrl
-                });
-
-                localStorage.setItem("candidates", JSON.stringify(candidates));
-                console.log(candidates)
-                document.getElementById("statusMessage").innerText = "Application submitted successfully!";
-
-                applyForm.reset();
-                closeModal(); 
+            const candidateData = {
+                name,
+                position,
+                manifesto: manifestoText,
+                video,
+                poster: posterUrl,
             };
 
-            readerPoster.readAsDataURL(posterInput);
+            const request = store.add(candidateData);
+            request.onsuccess = function () {
+                console.log("Candidate data saved successfully.");
+                document.getElementById("statusMessage").innerText = "Application submitted successfully!";
+                applyForm.reset();
+                closeModal();
+            };
+
+            request.onerror = function (event) {
+                console.error("Error saving candidate:", event.target.error);
+            };
         };
 
-        readerManifesto.readAsDataURL(manifestoInput);
+        readerPoster.readAsDataURL(posterInput);
     });
 });

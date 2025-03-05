@@ -1,18 +1,32 @@
 document.addEventListener("DOMContentLoaded", function () {
     const adModal = document.getElementById("ad-modal");
     const closeAd = document.querySelector(".close-ad");
+    const adVideo = document.getElementById("ad-video");
 
     setTimeout(() => {
-        adModal.style.display = "block";
+        showAd();
     }, 3000);
 
+    function showAd() {
+        adModal.style.display = "flex"; 
+        adModal.classList.add("active");
+        adVideo.play();
+    }
+
     closeAd.addEventListener("click", function () {
-        adModal.style.display = "none";
+        closeAdModal();
     });
 
     window.addEventListener("click", function (event) {
         if (event.target === adModal) {
-            adModal.style.display = "none";
+            closeAdModal();
         }
     });
+
+    function closeAdModal() {
+        adModal.style.display = "none";
+        adModal.classList.remove("active");
+        adVideo.pause();
+        adVideo.currentTime = 0; 
+    }
 });
